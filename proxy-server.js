@@ -1,28 +1,33 @@
-// Use import instead of require
 import express from 'express';
 import fetch from 'node-fetch';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors());
+
 app.get('/nws-alerts', async (req, res) => {
   try {
-    const nwsUrl = 'https://api.weather.gov/alerts/active?area=WI'; // Filtered for Wisconsin
-
-    const response = await fetch(nwsUrl, {
+    const response = await fetch('https://api.weather.gov/alerts/active?area=WI', {
       headers: {
-        'User-Agent': '(https://pmy968.github.io/ChromeOS-Weather-App, contact@example.com)',
-        'Accept': 'application/ld+json'
+        'User-Agent': 'ChromeOSWeatherApp/1.0 (your-email@example.com)',
+        'Accept': 'application/geo+json'
       }
     });
+
+    if (!response.ok) {
+      throw new Error(`NWS API returned ${response.status}`);
+    }
 
     const data = await response.json();
     res.json(data);
   } catch (err) {
+    console.error('Error fetching alerts:', err.message);
     res.status(500).json({ error: 'Failed to fetch NWS alerts' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Proxy server running on http://localhost:${PORT}`);
+  console.log(`✅ NWS proxy server is running at http://localhost:${PORT}`);
 });
